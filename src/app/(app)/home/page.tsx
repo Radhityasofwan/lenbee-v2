@@ -262,7 +262,7 @@ export default async function TutorHomePage() {
       <Link
         href="/asisten"
         aria-label="Buka Asisten AI"
-        className="animate-fab-in fixed top-[calc(env(safe-area-inset-top,0px)+5rem)] right-0 z-30 flex h-14 w-11 items-center justify-center rounded-l-2xl bg-primary text-primary-foreground shadow-md transition-transform active:scale-90"
+        className="animate-fab-in fixed top-[calc(env(safe-area-inset-top,0px)+5rem)] right-0 z-30 flex h-14 w-11 items-center justify-center rounded-l-2xl border border-r-0 border-border/40 bg-primary/70 text-primary-foreground shadow-md shadow-black/10 backdrop-blur-md transition-transform duration-200 supports-[backdrop-filter]:bg-primary/55 active:scale-90 motion-reduce:animate-none motion-reduce:transition-none motion-reduce:active:scale-100 dark:shadow-black/30"
       >
         <Bot className="size-5" />
       </Link>
