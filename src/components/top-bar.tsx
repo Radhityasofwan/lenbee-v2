@@ -3,7 +3,7 @@
 import { Bell, LogOut, Moon, Sun, UserRound } from "lucide-react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
-import { useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { logoutAction } from "@/app/actions/auth";
 import { SearchPalette } from "@/components/search/search-palette";
 import { StudentAvatar } from "@/components/student-avatar";
@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { SessionUser } from "@/lib/auth";
+import { cn } from "@/lib/utils";
 
 function subscribeNoop() {
   return () => {};
@@ -24,11 +25,26 @@ function subscribeNoop() {
 export function TopBar({ user, unread, logoUrl }: { user: SessionUser; unread: number; logoUrl?: string | null }) {
   const { resolvedTheme, setTheme } = useTheme();
   const mounted = useSyncExternalStore(subscribeNoop, () => true, () => false);
+  const [scrolled, setScrolled] = useState(false);
 
   const dark = mounted && resolvedTheme === "dark";
 
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 4);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <header className="safe-top sticky top-0 z-40 bg-primary/15">
+    <header
+      className={cn(
+        "safe-top sticky top-0 z-40 transition-[background-color,box-shadow,border-radius] duration-300 motion-reduce:transition-none",
+        scrolled
+          ? "rounded-b-[28px] border-b border-border/50 bg-primary/35 shadow-md shadow-black/[0.08] backdrop-blur-md supports-[backdrop-filter]:bg-primary/20 dark:shadow-black/30"
+          : "rounded-b-none bg-primary/15",
+      )}
+    >
       <div className="mx-auto flex h-14 w-full max-w-2xl items-center justify-between gap-2 px-4">
         <Link href={user.role === "tutor" ? "/home" : "/parent"} className="flex items-center gap-2">
           {logoUrl ? (

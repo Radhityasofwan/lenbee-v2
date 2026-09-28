@@ -46,7 +46,7 @@ export function BottomNav({ role }: { role: "tutor" | "parent" }) {
 
   return (
     <nav className="safe-bottom-gap fixed inset-x-0 bottom-0 z-40 px-3">
-      <ul className="mx-auto flex w-full max-w-2xl items-stretch gap-0.5 rounded-full border border-border/70 bg-card px-1.5 py-1.5 shadow-lg shadow-black/[0.08] dark:shadow-black/30">
+      <ul className="mx-auto flex w-full max-w-2xl items-stretch gap-0.5 rounded-full border border-border/70 bg-card/80 px-1.5 py-1.5 shadow-lg shadow-black/[0.08] backdrop-blur-md supports-[backdrop-filter]:bg-card/65 dark:shadow-black/30">
         {items.map((item) => {
           const active =
             pathname === item.href ||

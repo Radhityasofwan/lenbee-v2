@@ -81,7 +81,6 @@ export function SearchPalette() {
     const trimmed = query.trim();
     if (!open || !trimmed) return;
 
-    setLoading(true);
     const requestId = ++requestIdRef.current;
     const timer = setTimeout(() => {
       fetch(`/api/search?q=${encodeURIComponent(trimmed)}`)
@@ -105,7 +104,9 @@ export function SearchPalette() {
   function updateQuery(value: string) {
     setQuery(value);
     setActiveIndex(0);
-    if (!value.trim()) {
+    if (value.trim()) {
+      setLoading(true);
+    } else {
       setHits([]);
       setLoading(false);
     }
@@ -182,7 +183,7 @@ export function SearchPalette() {
               <input
                 ref={inputRef}
                 value={query}
-                onChange={(event) => setQuery(event.target.value)}
+                onChange={(event) => updateQuery(event.target.value)}
                 placeholder="Cari anak, materi, jadwal, invoice…"
                 maxLength={120}
                 className="h-6 min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
