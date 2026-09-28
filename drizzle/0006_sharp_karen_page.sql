@@ -1,0 +1,2 @@
+ALTER TABLE `ai_api_keys` MODIFY COLUMN `provider` enum('9router','google','openrouter') NOT NULL;--> statement-breakpoint
+ALTER TABLE `ai_models` MODIFY COLUMN `provider` enum('9router','google','openrouter') NOT NULL;

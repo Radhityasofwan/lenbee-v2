@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Lenbee">
+  <rect width="512" height="512" rx="112" fill="#c9761f" />
+  <path
+    d="M186 118h44v212h116v44H186z"
+    fill="#fff8ec"
+  />
+  <circle cx="330" cy="166" r="34" fill="#fff8ec" />
+  <path
+    d="M300 250c26-20 62-22 88-6 12 8 20 20 22 34-30-8-64-4-92 12-14 8-26 20-32 34-8-24 0-54 14-74z"
+    fill="#3b2a12"
+    opacity="0.35"
+  />
+</svg>

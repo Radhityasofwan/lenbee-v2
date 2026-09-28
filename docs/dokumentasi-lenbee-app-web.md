@@ -426,14 +426,14 @@ langsung muncul:
 
 Jangan terlalu banyak.
 
-Cukup:
+Navbar bawah cukup 4 yang paling sering dipakai:
 
 🏠 Home
 👧 Anak
 📅 Jadwal
 📝 Latihan
-💰 Invoice
-📁 Dokumen
+
+Invoice, Dokumen, Bank Soal, dan Laporan tidak perlu ikut di navbar — cukup jadi 4 pintasan kotak sejajar di halaman Home, karena dipakainya tidak setiap saat tapi tetap harus 1 ketuk dari Home.
 
 Tapi fitur absen + report + selesai mengajar harus bisa dilakukan langsung dari Home.
 

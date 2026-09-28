@@ -1,0 +1,76 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1790412839363,
+      "tag": "0000_clever_zemo",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1790423972297,
+      "tag": "0001_broken_angel",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1790439429498,
+      "tag": "0002_futuristic_sumo",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1790440583856,
+      "tag": "0003_ambiguous_ben_parker",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1790481419686,
+      "tag": "0004_classy_christian_walker",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1790485731678,
+      "tag": "0005_chemical_triton",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1790486554393,
+      "tag": "0006_sharp_karen_page",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1790494387367,
+      "tag": "0007_add_assignment_share_and_bank_questions",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1790496579736,
+      "tag": "0008_add_ai_chat",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1790561676409,
+      "tag": "0009_breezy_talisman",
+      "breakpoints": true
+    }
+  ]
+}

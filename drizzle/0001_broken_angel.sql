@@ -1,0 +1,1 @@
+ALTER TABLE `parent_updates` ADD `kind` enum('weekly','monthly','brief') DEFAULT 'weekly' NOT NULL;
