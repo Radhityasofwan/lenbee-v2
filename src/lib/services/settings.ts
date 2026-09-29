@@ -76,3 +76,26 @@ export async function setBrandingAsset(
     .values({ key, value })
     .onDuplicateKeyUpdate({ set: { value } });
 }
+
+const THEME_KEY = "theme.color";
+
+/** Warna primary aplikasi (hex), diatur super admin. `null` = pakai token bawaan di globals.css. */
+export const getThemeColor = unstable_cache(
+  async (): Promise<string | null> => {
+    const [row] = await db.select().from(settings).where(eq(settings.key, THEME_KEY)).limit(1);
+    return row?.value ?? null;
+  },
+  ["theme-color"],
+  { tags: ["theme"] },
+);
+
+export async function setThemeColor(hex: string | null): Promise<void> {
+  if (!hex) {
+    await db.delete(settings).where(eq(settings.key, THEME_KEY));
+    return;
+  }
+  await db
+    .insert(settings)
+    .values({ key: THEME_KEY, value: hex })
+    .onDuplicateKeyUpdate({ set: { value: hex } });
+}

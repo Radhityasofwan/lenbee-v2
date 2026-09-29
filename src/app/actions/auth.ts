@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { parentInvites, parentStudents, users } from "@/db/schema";
 import {
+  ROLE_HOME,
   createSession,
   destroySession,
   isLoginThrottled,
@@ -13,7 +14,7 @@ import {
   hashPassword,
 } from "@/lib/auth";
 import { errorMessage, fail, parseForm, type ActionState } from "@/lib/form";
-import { acceptInviteSchema, loginSchema, registerSchema } from "@/lib/validation";
+import { acceptInviteSchema, loginSchema } from "@/lib/validation";
 
 export async function loginAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   const parsed = parseForm(loginSchema, formData);
@@ -28,7 +29,13 @@ export async function loginAction(_prev: ActionState, formData: FormData): Promi
     }
 
     const rows = await db
-      .select({ id: users.id, role: users.role, passwordHash: users.passwordHash, isActive: users.isActive })
+      .select({
+        id: users.id,
+        role: users.role,
+        passwordHash: users.passwordHash,
+        isActive: users.isActive,
+        activeUntil: users.activeUntil,
+      })
       .from(users)
       .where(eq(users.email, email))
       .limit(1);
@@ -43,53 +50,24 @@ export async function loginAction(_prev: ActionState, formData: FormData): Promi
 
     if (!user.isActive) {
       await recordLoginAttempt(email, false);
-      return fail("Akun ini sedang dinonaktifkan. Hubungi pengajar Anda.");
+      return fail("Akun ini sedang dinonaktifkan. Hubungi admin.");
+    }
+
+    if (user.activeUntil && user.activeUntil.getTime() < Date.now()) {
+      await recordLoginAttempt(email, false);
+      return fail("Masa aktif akun ini sudah berakhir. Hubungi admin.");
     }
 
     await recordLoginAttempt(email, true);
     await db.update(users).set({ lastLoginAt: new Date() }).where(eq(users.id, user.id));
     await createSession(user.id);
 
-    destination = user.role === "parent" ? "/parent" : "/home";
+    destination = ROLE_HOME[user.role];
   } catch (error) {
     return fail(errorMessage(error, "Gagal masuk. Periksa koneksi database."));
   }
 
   redirect(destination);
-}
-
-export async function registerAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  const parsed = parseForm(registerSchema, formData);
-  if (!parsed.success) return parsed.state;
-
-  const { name, email, phone, password } = parsed.data;
-
-  try {
-    const existing = await db.select({ id: users.id }).from(users).where(eq(users.email, email)).limit(1);
-    if (existing.length > 0) {
-      return fail("Email ini sudah terdaftar. Silakan masuk.", { email: "Email sudah digunakan." });
-    }
-
-    const inserted = await db
-      .insert(users)
-      .values({
-        email,
-        name,
-        phone: phone ?? null,
-        passwordHash: await hashPassword(password),
-        role: "tutor",
-      })
-      .$returningId();
-
-    const userId = inserted[0]?.id;
-    if (!userId) return fail("Gagal membuat akun. Coba lagi.");
-
-    await createSession(userId);
-  } catch (error) {
-    return fail(errorMessage(error, "Gagal membuat akun."));
-  }
-
-  redirect("/home");
 }
 
 export async function acceptInviteAction(_prev: ActionState, formData: FormData): Promise<ActionState> {

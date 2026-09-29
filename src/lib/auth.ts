@@ -8,10 +8,17 @@ import { and, eq, gt, lt } from "drizzle-orm";
 import { db } from "@/db";
 import { authSessions, loginAttempts, users, type User } from "@/db/schema";
 import { env } from "./env";
+import { ROLE_HOME } from "./role-home";
 
 const BCRYPT_ROUNDS = 12;
 
-export type SessionUser = Pick<User, "id" | "email" | "name" | "role" | "avatarPath" | "isActive">;
+export type SessionUser = Pick<User, "id" | "email" | "name" | "role" | "avatarPath" | "isActive" | "activeUntil">;
+
+export { ROLE_HOME };
+
+function isExpired(activeUntil: Date | null): boolean {
+  return activeUntil !== null && activeUntil.getTime() < Date.now();
+}
 
 export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, BCRYPT_ROUNDS);
@@ -81,6 +88,7 @@ export const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
       role: users.role,
       avatarPath: users.avatarPath,
       isActive: users.isActive,
+      activeUntil: users.activeUntil,
     })
     .from(authSessions)
     .innerJoin(users, eq(users.id, authSessions.userId))
@@ -88,7 +96,7 @@ export const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
     .limit(1);
 
   const user = rows[0];
-  if (!user || !user.isActive) return null;
+  if (!user || !user.isActive || isExpired(user.activeUntil)) return null;
   return user;
 });
 
@@ -100,13 +108,19 @@ export async function requireUser(): Promise<SessionUser> {
 
 export async function requireTutor(): Promise<SessionUser> {
   const user = await requireUser();
-  if (user.role !== "tutor") redirect("/parent");
+  if (user.role !== "tutor") redirect(ROLE_HOME[user.role]);
   return user;
 }
 
 export async function requireParent(): Promise<SessionUser> {
   const user = await requireUser();
-  if (user.role !== "parent") redirect("/home");
+  if (user.role !== "parent") redirect(ROLE_HOME[user.role]);
+  return user;
+}
+
+export async function requireSuperAdmin(): Promise<SessionUser> {
+  const user = await requireUser();
+  if (user.role !== "super_admin") redirect(ROLE_HOME[user.role]);
   return user;
 }
 
@@ -120,6 +134,12 @@ export async function getSessionUserOrThrow(): Promise<SessionUser> {
 export async function getTutorOrThrow(): Promise<SessionUser> {
   const user = await getSessionUserOrThrow();
   if (user.role !== "tutor") throw new Error("FORBIDDEN");
+  return user;
+}
+
+export async function getSuperAdminOrThrow(): Promise<SessionUser> {
+  const user = await getSessionUserOrThrow();
+  if (user.role !== "super_admin") throw new Error("FORBIDDEN");
   return user;
 }
 

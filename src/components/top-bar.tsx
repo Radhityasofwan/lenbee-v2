@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { SessionUser } from "@/lib/auth";
+import { ROLE_HOME } from "@/lib/role-home";
 import { cn } from "@/lib/utils";
 
 function subscribeNoop() {
@@ -46,7 +47,7 @@ export function TopBar({ user, unread, logoUrl }: { user: SessionUser; unread: n
       )}
     >
       <div className="mx-auto flex h-14 w-full max-w-2xl items-center justify-between gap-2 px-4">
-        <Link href={user.role === "tutor" ? "/home" : "/parent"} className="flex items-center gap-2">
+        <Link href={ROLE_HOME[user.role]} className="flex items-center gap-2">
           {logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element -- logo diunggah tutor, dimensi tidak diketahui saat build.
             <img src={logoUrl} alt="Lenbee" className="size-7 rounded-lg object-contain" />
@@ -87,12 +88,14 @@ export function TopBar({ user, unread, logoUrl }: { user: SessionUser; unread: n
                 <span className="truncate text-xs font-normal text-muted-foreground">{user.email}</span>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/settings">
-                  <UserRound />
-                  Profil &amp; Pengaturan
-                </Link>
-              </DropdownMenuItem>
+              {user.role !== "super_admin" ? (
+                <DropdownMenuItem asChild>
+                  <Link href="/settings">
+                    <UserRound />
+                    Profil &amp; Pengaturan
+                  </Link>
+                </DropdownMenuItem>
+              ) : null}
               <DropdownMenuItem onSelect={() => setTheme(dark ? "light" : "dark")}>
                 {dark ? <Sun /> : <Moon />}
                 {dark ? "Mode terang" : "Mode gelap"}

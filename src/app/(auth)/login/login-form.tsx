@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useActionState } from "react";
 import { Input } from "@/components/ui/input";
 import { Field, FieldGroup } from "@/components/ui/field";
@@ -38,13 +37,6 @@ export function LoginForm() {
       <SubmitButton pendingLabel="Sedang masuk…" className="w-full">
         Masuk
       </SubmitButton>
-
-      <p className="text-center text-sm text-muted-foreground">
-        Belum punya akun?{" "}
-        <Link href="/register" className="font-semibold text-primary underline-offset-4 hover:underline">
-          Daftar sebagai pengajar
-        </Link>
-      </p>
     </form>
   );
 }

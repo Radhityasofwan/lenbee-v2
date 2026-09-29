@@ -96,19 +96,6 @@ export const loginSchema = z.object({
   password: z.string().min(1, "Password wajib diisi."),
 });
 
-export const registerSchema = z
-  .object({
-    name: z.string().trim().min(2, "Nama minimal 2 karakter.").max(120, "Nama maksimal 120 karakter."),
-    email: emailField,
-    phone: phoneField,
-    password: passwordField,
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    error: "Konfirmasi password tidak sama.",
-    path: ["confirmPassword"],
-  });
-
 export const acceptInviteSchema = z
   .object({
     token: z.string().trim().min(10, "Token undangan tidak valid.").max(128),
@@ -137,6 +124,32 @@ export const changePasswordSchema = z
     error: "Konfirmasi password tidak sama.",
     path: ["confirmPassword"],
   });
+
+/* --------------------------------- Admin ---------------------------------- */
+
+const accountNameField = z.string().trim().min(2, "Nama minimal 2 karakter.").max(120, "Nama maksimal 120 karakter.");
+
+export const createAccountSchema = z.object({
+  name: accountNameField,
+  email: emailField,
+  phone: phoneField,
+  password: passwordField,
+  activeUntil: optionalDateKey(),
+  studentIds: z.array(z.string()).default([]),
+});
+
+export const updateAccountSchema = z.object({
+  name: accountNameField,
+  email: emailField,
+  phone: phoneField,
+  activeUntil: optionalDateKey(),
+  studentIds: z.array(z.string()).default([]),
+});
+
+export const deleteAccountSchema = z.object({
+  accountId: z.coerce.number().int().positive("Akun tidak ditemukan."),
+  confirmEmail: emailField,
+});
 
 /* -------------------------------- Students -------------------------------- */
 
@@ -591,7 +604,6 @@ export const aiModelSyncSchema = z.object({
 });
 
 export type LoginInput = z.infer<typeof loginSchema>;
-export type RegisterInput = z.infer<typeof registerSchema>;
 export type StudentInput = z.infer<typeof studentSchema>;
 export type ProgramInput = z.infer<typeof programSchema>;
 export type ScheduleInput = z.infer<typeof scheduleSchema>;

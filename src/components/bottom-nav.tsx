@@ -4,8 +4,10 @@ import {
   CalendarDays,
   ClipboardList,
   House,
+  Palette,
   Receipt,
   Settings2,
+  UserRound,
   Users,
   Wallet,
 } from "lucide-react";
@@ -34,12 +36,18 @@ const PARENT_NAV: NavItem[] = [
   { href: "/settings", label: "Akun", icon: Settings2 },
 ];
 
+const ADMIN_NAV: NavItem[] = [
+  { href: "/admin/tutors", label: "Tutor", icon: Users },
+  { href: "/admin/parents", label: "Orang Tua", icon: UserRound },
+  { href: "/admin/theme", label: "Tema", icon: Palette },
+];
+
 /** Halaman percakapan Asisten AI sembunyikan nav supaya kolom chat bisa nempel pas di bawah layar. */
 const FOCUSED_PREFIXES = ["/asisten/"];
 
-export function BottomNav({ role }: { role: "tutor" | "parent" }) {
+export function BottomNav({ role }: { role: "tutor" | "parent" | "super_admin" }) {
   const pathname = usePathname();
-  const items = role === "tutor" ? TUTOR_NAV : PARENT_NAV;
+  const items = role === "tutor" ? TUTOR_NAV : role === "parent" ? PARENT_NAV : ADMIN_NAV;
   const isParent = role === "parent";
 
   if (FOCUSED_PREFIXES.some((prefix) => pathname.startsWith(prefix))) return null;

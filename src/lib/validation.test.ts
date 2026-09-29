@@ -3,7 +3,6 @@ import {
   completeLessonSchema,
   invoiceGenerateSchema,
   loginSchema,
-  registerSchema,
   scheduleSchema,
   studentSchema,
 } from "./validation";
@@ -17,21 +16,6 @@ describe("loginSchema", () => {
     const result = loginSchema.safeParse({ email: "bukan-email", password: "" });
     expect(result.success).toBe(false);
     expect(result.error?.issues.map((issue) => issue.path[0]).sort()).toEqual(["email", "password"]);
-  });
-});
-
-describe("registerSchema", () => {
-  const base = { name: "Tutor Lenbee", email: "tutor@lenbee.id", phone: "081234567890", password: "Rahasia123" };
-
-  it("menolak konfirmasi password yang berbeda dan menandai field-nya", () => {
-    const result = registerSchema.safeParse({ ...base, confirmPassword: "Rahasia999" });
-    expect(result.success).toBe(false);
-    expect(result.error?.issues[0].path).toEqual(["confirmPassword"]);
-  });
-
-  it("menolak password yang terlalu pendek", () => {
-    const result = registerSchema.safeParse({ ...base, password: "abc", confirmPassword: "abc" });
-    expect(result.success).toBe(false);
   });
 });
 

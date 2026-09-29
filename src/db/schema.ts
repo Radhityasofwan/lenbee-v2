@@ -27,9 +27,11 @@ export const users = mysqlTable(
     passwordHash: varchar("password_hash", { length: 255 }),
     name: varchar("name", { length: 120 }).notNull(),
     phone: varchar("phone", { length: 32 }),
-    role: mysqlEnum("role", ["tutor", "parent"]).notNull(),
+    role: mysqlEnum("role", ["tutor", "parent", "super_admin"]).notNull(),
     avatarPath: varchar("avatar_path", { length: 500 }),
     isActive: boolean("is_active").notNull().default(true),
+    /** Masa aktif akun. `NULL` = tanpa batas waktu. Ditentukan super admin. */
+    activeUntil: timestamp("active_until"),
     lastLoginAt: timestamp("last_login_at"),
     /** Catatan gaya/format soal favorit tutor — dipakai ulang oleh Asisten AI di setiap percakapan baru. */
     aiStyleNotes: text("ai_style_notes"),

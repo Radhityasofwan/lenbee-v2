@@ -1,24 +1,18 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser, ROLE_HOME } from "@/lib/auth";
 import { LoginForm } from "./login-form";
 
 export const metadata: Metadata = { title: "Masuk" };
 
 export default async function LoginPage() {
   const user = await getCurrentUser();
-  if (user) redirect(user.role === "parent" ? "/parent" : "/home");
+  if (user) redirect(ROLE_HOME[user.role]);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-xl">Masuk</CardTitle>
-        <CardDescription>Gunakan email dan password akun Lenbee Anda.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <LoginForm />
-      </CardContent>
-    </Card>
+    <div className="flex flex-col gap-6">
+      <h1 className="text-2xl font-bold tracking-tight text-foreground">Masuk</h1>
+      <LoginForm />
+    </div>
   );
 }

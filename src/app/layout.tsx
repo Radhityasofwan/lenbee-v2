@@ -3,7 +3,8 @@ import { Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { PwaRegister } from "@/components/pwa-register";
-import { brandingUrl, getBrandingAsset } from "@/lib/services/settings";
+import { deriveThemeTokens } from "@/lib/domain/theme";
+import { brandingUrl, getBrandingAsset, getThemeColor } from "@/lib/services/settings";
 import "./globals.css";
 
 const sans = Plus_Jakarta_Sans({
@@ -56,10 +57,17 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const themeColor = await getThemeColor();
+  const tokens = themeColor ? deriveThemeTokens(themeColor) : null;
+
   return (
     <html lang="id" suppressHydrationWarning className={`${sans.variable} ${mono.variable} h-full antialiased`}>
       <body className="min-h-full bg-background text-foreground">
+        {tokens ? (
+          <style>{`:root{--primary:${tokens.light.primary};--primary-foreground:${tokens.light.primaryForeground};--ring:${tokens.light.ring};}
+.dark{--primary:${tokens.dark.primary};--primary-foreground:${tokens.dark.primaryForeground};--ring:${tokens.dark.ring};}`}</style>
+        ) : null}
         <ThemeProvider>
           {children}
           <Toaster />

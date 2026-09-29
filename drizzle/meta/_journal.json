@@ -71,6 +71,13 @@
       "when": 1790561676409,
       "tag": "0009_breezy_talisman",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1790644141424,
+      "tag": "0010_daily_logan",
+      "breakpoints": true
     }
   ]
 }

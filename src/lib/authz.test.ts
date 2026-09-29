@@ -3,7 +3,16 @@ import { AccessDeniedError, assertStudentAccess, getStudentForUser, studentScope
 import type { SessionUser } from "./auth";
 
 function user(overrides: Partial<SessionUser> = {}): SessionUser {
-  return { id: 1, email: "tutor@lenbee.id", name: "Tutor", role: "tutor", avatarPath: null, isActive: true, ...overrides };
+  return {
+    id: 1,
+    email: "tutor@lenbee.id",
+    name: "Tutor",
+    role: "tutor",
+    avatarPath: null,
+    isActive: true,
+    activeUntil: null,
+    ...overrides,
+  };
 }
 
 describe("AccessDeniedError", () => {
