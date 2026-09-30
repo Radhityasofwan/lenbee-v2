@@ -10,8 +10,11 @@ export default async function LoginPage() {
   if (user) redirect(ROLE_HOME[user.role]);
 
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-bold tracking-tight text-foreground">Masuk</h1>
+    <div className="flex flex-col gap-5">
+      <div>
+        <h1 className="text-lg font-bold tracking-tight text-foreground">Masuk ke akun Anda</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Senang bertemu lagi — silakan lanjutkan belajar.</p>
+      </div>
       <LoginForm />
     </div>
   );
