@@ -38,12 +38,15 @@ export function PushNotificationToggle({ vapidPublicKey }: { vapidPublicKey: str
     let cancelled = false;
 
     async function detect() {
-      if (!vapidPublicKey || !("serviceWorker" in navigator) || !("PushManager" in window)) {
-        if (!cancelled) setStatus("unsupported");
-        return;
-      }
+      // Di iOS, PushManager/Notification belum ada sama sekali sebelum app di-install
+      // ke Home Screen — cek ini dulu, sebelum cek dukungan API, supaya instruksi
+      // "Add to Home Screen" tetap muncul (bukan jatuh ke pesan "tidak didukung").
       if (isIos() && !isStandalone()) {
         if (!cancelled) setStatus("ios-needs-install");
+        return;
+      }
+      if (!vapidPublicKey || !("serviceWorker" in navigator) || !("PushManager" in window)) {
+        if (!cancelled) setStatus("unsupported");
         return;
       }
       try {

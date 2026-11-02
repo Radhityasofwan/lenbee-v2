@@ -97,6 +97,7 @@ async function runCompletion(params: {
       prompt: params.prompt,
       maxTokens: params.maxTokens,
       temperature: params.temperature,
+      images: params.images,
     });
     if (!output) throw new AiUnavailableError("AI mengembalikan respons kosong");
     await logGeneration({
@@ -663,8 +664,16 @@ export async function runChatTurn(userId: number, input: ChatTurnInput): Promise
     };
 
     if (Array.isArray(parsed.questions)) {
-      const normalized = normalizeGeneratedQuestions(parsed.questions, CHAT_QUESTION_TYPES);
-      if (normalized.length > 0) nextState.questions = normalized;
+      // Kontrak prompt: null = tidak ada perubahan, array = draf akhir lengkap
+      // (bisa kosong kalau tutor minta hapus semua soal). Array non-kosong yang
+      // gagal dinormalisasi dianggap respons rusak, bukan niat mengosongkan —
+      // draf lama dipertahankan supaya tidak hilang karena salah format.
+      if (parsed.questions.length === 0) {
+        nextState.questions = [];
+      } else {
+        const normalized = normalizeGeneratedQuestions(parsed.questions, CHAT_QUESTION_TYPES);
+        if (normalized.length > 0) nextState.questions = normalized;
+      }
     }
 
     const styleNote = typeof parsed.styleNote === "string" && parsed.styleNote.trim() ? parsed.styleNote.trim() : null;

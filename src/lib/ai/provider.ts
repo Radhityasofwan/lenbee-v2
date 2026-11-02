@@ -1,4 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { openAiCompatUserContent } from "@/lib/ai/providers/openai-compat";
+import type { ProviderImage } from "@/lib/ai/providers/types";
 import { activeAiProvider, env } from "@/lib/env";
 
 export type CompletionRequest = {
@@ -6,6 +8,7 @@ export type CompletionRequest = {
   prompt: string;
   maxTokens?: number;
   temperature?: number;
+  images?: ProviderImage[];
 };
 
 export interface AiProvider {
@@ -31,13 +34,32 @@ class AnthropicProvider implements AiProvider {
     this.client = new Anthropic({ apiKey, timeout: env.ai.timeoutMs, maxRetries: 2 });
   }
 
-  async complete({ system, prompt, maxTokens, temperature }: CompletionRequest): Promise<string> {
+  async complete({ system, prompt, maxTokens, temperature, images }: CompletionRequest): Promise<string> {
+    const content: Anthropic.MessageParam["content"] = images?.length
+      ? [
+          ...images.map(
+            (image): Anthropic.ImageBlockParam | Anthropic.DocumentBlockParam =>
+              image.mimeType === "application/pdf"
+                ? { type: "document", source: { type: "base64", media_type: "application/pdf", data: image.base64 } }
+                : {
+                    type: "image",
+                    source: {
+                      type: "base64",
+                      media_type: image.mimeType as Anthropic.Base64ImageSource["media_type"],
+                      data: image.base64,
+                    },
+                  },
+          ),
+          { type: "text", text: prompt },
+        ]
+      : prompt;
+
     const response = await this.client.messages.create({
       model: this.model,
       max_tokens: maxTokens ?? env.ai.maxOutputTokens,
       temperature: temperature ?? 0.6,
       system,
-      messages: [{ role: "user", content: prompt }],
+      messages: [{ role: "user", content }],
     });
     return response.content
       .filter((block): block is Anthropic.TextBlock => block.type === "text")
@@ -59,7 +81,7 @@ class OpenAiCompatProvider implements AiProvider {
     this.model = model;
   }
 
-  async complete({ system, prompt, maxTokens, temperature }: CompletionRequest): Promise<string> {
+  async complete({ system, prompt, maxTokens, temperature, images }: CompletionRequest): Promise<string> {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), env.ai.timeoutMs);
     try {
@@ -75,7 +97,7 @@ class OpenAiCompatProvider implements AiProvider {
           temperature: temperature ?? 0.6,
           messages: [
             { role: "system", content: system },
-            { role: "user", content: prompt },
+            { role: "user", content: openAiCompatUserContent(prompt, images) },
           ],
         }),
         signal: controller.signal,

@@ -8,8 +8,8 @@ import { errorMessage, parseJson } from "@/lib/form";
 const subscribeSchema = z.object({
   endpoint: z.string().trim().min(1).max(500),
   keys: z.object({
-    p256dh: z.string().trim().min(1),
-    auth: z.string().trim().min(1),
+    p256dh: z.string().trim().min(1).max(200),
+    auth: z.string().trim().min(1).max(200),
   }),
 });
 

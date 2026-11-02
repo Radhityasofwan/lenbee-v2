@@ -25,6 +25,16 @@ export class ChatError extends Error {
 const EMPTY_STATE: ChatDraftState = { questions: [], activeDocumentIds: [] };
 const MAX_STYLE_NOTES_CHARS = 2000;
 
+/** Data lama (mis. impor dump sebelum field ini ada) bisa menyimpan state tanpa questions/activeDocumentIds — jangan percaya bentuknya mentah-mentah. */
+function normalizeState(state: ChatDraftState | null | undefined): ChatDraftState {
+  return {
+    ...EMPTY_STATE,
+    ...state,
+    questions: state?.questions ?? [],
+    activeDocumentIds: state?.activeDocumentIds ?? [],
+  };
+}
+
 async function assertOwnedSession(tutorId: number, sessionId: number): Promise<AiChatSession> {
   const rows = await db
     .select()
@@ -33,7 +43,7 @@ async function assertOwnedSession(tutorId: number, sessionId: number): Promise<A
     .limit(1);
   const session = rows[0];
   if (!session) throw new ChatError("Percakapan tidak ditemukan.");
-  return session;
+  return { ...session, state: normalizeState(session.state) };
 }
 
 export async function getOwnedChatSession(tutorId: number, sessionId: number): Promise<AiChatSession> {
@@ -41,12 +51,13 @@ export async function getOwnedChatSession(tutorId: number, sessionId: number): P
 }
 
 export async function listChatSessions(tutorId: number): Promise<AiChatSession[]> {
-  return db
+  const rows = await db
     .select()
     .from(aiChatSessions)
     .where(eq(aiChatSessions.tutorId, tutorId))
     .orderBy(desc(aiChatSessions.updatedAt))
     .limit(100);
+  return rows.map((row) => ({ ...row, state: normalizeState(row.state) }));
 }
 
 export async function createChatSession(tutorId: number, studentId: number): Promise<AiChatSession> {

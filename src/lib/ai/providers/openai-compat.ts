@@ -5,8 +5,27 @@ import {
   type ProviderAdapter,
   type ProviderCallOptions,
   type ProviderCallResult,
+  type ProviderImage,
   type ProviderModel,
 } from "@/lib/ai/providers/types";
+
+/**
+ * Shared by the key-pool adapter below AND the env-based fallback provider
+ * (lib/ai/provider.ts), so both paths describe attachments the same way —
+ * a PDF sent as an `image_url` is silently mishandled by most OpenAI-compatible
+ * gateways, so it needs the dedicated `file` part instead.
+ */
+export function openAiCompatUserContent(prompt: string, images?: ProviderImage[]): string | Record<string, unknown>[] {
+  if (!images?.length) return prompt;
+  return [
+    { type: "text", text: prompt },
+    ...images.map((image) =>
+      image.mimeType === "application/pdf"
+        ? { type: "file", file: { filename: "lampiran.pdf", file_data: `data:${image.mimeType};base64,${image.base64}` } }
+        : { type: "image_url", image_url: { url: `data:${image.mimeType};base64,${image.base64}` } },
+    ),
+  ];
+}
 
 export interface OpenAiCompatConfig {
   id: AIProviderId;
@@ -55,15 +74,7 @@ export function createOpenAiCompatAdapter(config: OpenAiCompatConfig): ProviderA
     async call(options: ProviderCallOptions): Promise<ProviderCallResult> {
       const { apiKey, modelId, prompt, system, images, temperature, maxTokens, timeoutMs } = options;
 
-      const userContent = images?.length
-        ? [
-            { type: "text", text: prompt },
-            ...images.map((image) => ({
-              type: "image_url",
-              image_url: { url: `data:${image.mimeType};base64,${image.base64}` },
-            })),
-          ]
-        : prompt;
+      const userContent = openAiCompatUserContent(prompt, images);
 
       const messages: Record<string, unknown>[] = [];
       if (system) messages.push({ role: "system", content: system });

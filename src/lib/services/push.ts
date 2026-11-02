@@ -50,6 +50,8 @@ export async function sendPushToUser(userId: number, payload: PushPayload): Prom
           const statusCode = (error as { statusCode?: number }).statusCode;
           if (statusCode === 404 || statusCode === 410) {
             await db.delete(pushSubscriptions).where(eq(pushSubscriptions.id, sub.id));
+          } else {
+            console.error(`[push] gagal kirim ke subscription #${sub.id} (status ${statusCode ?? "?"})`, error);
           }
         }
       }),
