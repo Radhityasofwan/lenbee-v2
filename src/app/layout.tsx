@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
+import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
 import { PwaRegister } from "@/components/pwa-register";
 import { deriveThemeTokens } from "@/lib/domain/theme";
 import { brandingUrl, getBrandingAsset, getThemeColor } from "@/lib/services/settings";
@@ -73,6 +74,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           <Toaster />
         </ThemeProvider>
         <PwaRegister />
+        <PwaInstallPrompt />
       </body>
     </html>
   );

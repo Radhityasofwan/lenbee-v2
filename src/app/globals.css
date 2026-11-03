@@ -168,6 +168,11 @@
   padding-top: env(safe-area-inset-top, 0px);
 }
 
+/** Jarak kapsul notifikasi dari tepi bawah — mengambang di atas bottom nav. */
+@utility safe-bottom-float {
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 4.75rem);
+}
+
 @keyframes lenbee-rise {
   from {
     opacity: 0;

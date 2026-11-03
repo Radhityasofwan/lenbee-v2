@@ -3,13 +3,18 @@ const CACHE = "lenbee-static-v1";
 const PRECACHE = ["/manifest.webmanifest", "/icons/icon.svg"];
 
 self.addEventListener("install", (event) => {
+  // Sengaja tidak skipWaiting otomatis: worker baru menunggu di state "waiting" supaya
+  // klien bisa mendeteksi update tersedia dan minta persetujuan user sebelum aktif.
   event.waitUntil(
     caches
       .open(CACHE)
       .then((cache) => cache.addAll(PRECACHE))
-      .then(() => self.skipWaiting())
-      .catch(() => self.skipWaiting()),
+      .catch(() => {}),
   );
+});
+
+self.addEventListener("message", (event) => {
+  if (event.data?.type === "SKIP_WAITING") self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
