@@ -71,13 +71,23 @@ self.addEventListener("push", (event) => {
   }
 
   event.waitUntil(
-    self.registration.showNotification(data.title, {
-      body: data.body,
-      icon: "/icons/icon.svg",
-      badge: "/icons/icon.svg",
-      data: { url: data.url },
-      tag: data.url,
-    }),
+    (async () => {
+      await self.registration.showNotification(data.title, {
+        body: data.body,
+        icon: "/icons/icon.svg",
+        badge: "/icons/icon.svg",
+        data: { url: data.url },
+        // Tag khusus untuk push uji coba supaya tidak menimpa notifikasi asli yang tag-nya dari url.
+        tag: data.testId ? `test-${data.testId}` : data.url,
+      });
+
+      // Push uji coba: lapor balik ke tab yang terbuka begitu showNotification() selesai —
+      // ini bukti nyata bahwa notifikasi benar-benar diproses OS, bukan cuma "terkirim".
+      if (data.testId) {
+        const clients = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+        for (const client of clients) client.postMessage({ type: "push-test-shown", testId: data.testId });
+      }
+    })(),
   );
 });
 

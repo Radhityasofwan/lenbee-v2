@@ -3,6 +3,7 @@ import { eq, inArray } from "drizzle-orm";
 import { unstable_cache } from "next/cache";
 import { db } from "@/db";
 import { settings } from "@/db/schema";
+import { isValidHex, type ThemeConfig } from "@/lib/domain/theme";
 
 export type BrandingAsset = { key: string; mimeType: string; originalName: string; updatedAt: string };
 
@@ -77,25 +78,47 @@ export async function setBrandingAsset(
     .onDuplicateKeyUpdate({ set: { value } });
 }
 
-const THEME_KEY = "theme.color";
+const THEME_KEY = "theme.config";
+/** Key tema versi lama (hex tunggal) — dibaca sebagai fallback, dihapus begitu tema baru disimpan. */
+const LEGACY_THEME_COLOR_KEY = "theme.color";
 
-/** Warna primary aplikasi (hex), diatur super admin. `null` = pakai token bawaan di globals.css. */
-export const getThemeColor = unstable_cache(
-  async (): Promise<string | null> => {
+function parseThemeConfig(value: string): ThemeConfig | null {
+  try {
+    const parsed = JSON.parse(value) as Partial<ThemeConfig>;
+    if (!parsed.primary || !isValidHex(parsed.primary)) return null;
+    return {
+      primary: parsed.primary,
+      gradient: parsed.gradient === true,
+      secondary: parsed.secondary && isValidHex(parsed.secondary) ? parsed.secondary : null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** Konfigurasi tema aplikasi, diatur super admin. `null` = pakai token bawaan di globals.css. */
+export const getThemeConfig = unstable_cache(
+  async (): Promise<ThemeConfig | null> => {
     const [row] = await db.select().from(settings).where(eq(settings.key, THEME_KEY)).limit(1);
-    return row?.value ?? null;
+    if (row) return parseThemeConfig(row.value);
+
+    const [legacy] = await db.select().from(settings).where(eq(settings.key, LEGACY_THEME_COLOR_KEY)).limit(1);
+    if (legacy && isValidHex(legacy.value)) return { primary: legacy.value, gradient: false, secondary: null };
+    return null;
   },
-  ["theme-color"],
+  ["theme-config"],
   { tags: ["theme"] },
 );
 
-export async function setThemeColor(hex: string | null): Promise<void> {
-  if (!hex) {
-    await db.delete(settings).where(eq(settings.key, THEME_KEY));
+export async function setThemeConfig(config: ThemeConfig | null): Promise<void> {
+  if (!config) {
+    await db.delete(settings).where(inArray(settings.key, [THEME_KEY, LEGACY_THEME_COLOR_KEY]));
     return;
   }
+  const value = JSON.stringify(config);
   await db
     .insert(settings)
-    .values({ key: THEME_KEY, value: hex })
-    .onDuplicateKeyUpdate({ set: { value: hex } });
+    .values({ key: THEME_KEY, value })
+    .onDuplicateKeyUpdate({ set: { value } });
+  await db.delete(settings).where(eq(settings.key, LEGACY_THEME_COLOR_KEY));
 }

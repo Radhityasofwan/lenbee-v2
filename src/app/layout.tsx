@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
 import { PwaRegister } from "@/components/pwa-register";
 import { deriveThemeTokens } from "@/lib/domain/theme";
-import { brandingUrl, getBrandingAsset, getThemeColor } from "@/lib/services/settings";
+import { brandingUrl, getBrandingAsset, getThemeConfig } from "@/lib/services/settings";
 import "./globals.css";
 
 const sans = Plus_Jakarta_Sans({
@@ -58,16 +58,20 @@ export const viewport: Viewport = {
   ],
 };
 
+function cssTokens(t: { primary: string; primaryForeground: string; ring: string; accent: string; accentForeground: string; gradientFrom: string; gradientTo: string }): string {
+  return `--primary:${t.primary};--primary-foreground:${t.primaryForeground};--ring:${t.ring};--accent:${t.accent};--accent-foreground:${t.accentForeground};--primary-gradient:linear-gradient(135deg,${t.gradientFrom},${t.gradientTo});`;
+}
+
 export default async function RootLayout({ children }: LayoutProps<"/">) {
-  const themeColor = await getThemeColor();
-  const tokens = themeColor ? deriveThemeTokens(themeColor) : null;
+  const themeConfig = await getThemeConfig();
+  const tokens = themeConfig ? deriveThemeTokens(themeConfig) : null;
 
   return (
     <html lang="id" suppressHydrationWarning className={`${sans.variable} ${mono.variable} h-full antialiased`}>
       <body className="min-h-full bg-background text-foreground">
         {tokens ? (
-          <style>{`:root{--primary:${tokens.light.primary};--primary-foreground:${tokens.light.primaryForeground};--ring:${tokens.light.ring};}
-.dark{--primary:${tokens.dark.primary};--primary-foreground:${tokens.dark.primaryForeground};--ring:${tokens.dark.ring};}`}</style>
+          <style>{`:root{${cssTokens(tokens.light)}}
+.dark{${cssTokens(tokens.dark)}}`}</style>
         ) : null}
         <ThemeProvider>
           {children}

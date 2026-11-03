@@ -1,17 +1,20 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/ui/page-header";
-import { getThemeColor } from "@/lib/services/settings";
+import { getThemeConfig } from "@/lib/services/settings";
 import { ThemeForm } from "./theme-form";
 
 export const metadata: Metadata = { title: "Tema" };
 
 export default async function AdminThemePage() {
-  const color = await getThemeColor();
+  const config = await getThemeConfig();
 
   return (
     <div className="flex flex-col gap-4">
-      <PageHeader title="Tema" description="Atur warna utama (primary) aplikasi. Berlaku untuk semua akun." />
-      <ThemeForm initialColor={color} />
+      <PageHeader
+        title="Tema"
+        description="Atur warna brand aplikasi — primary, gradasi, dan turunannya (aksen, fokus). Berlaku untuk semua akun."
+      />
+      <ThemeForm initialConfig={config} />
     </div>
   );
 }

@@ -125,6 +125,10 @@ export const changePasswordSchema = z
     path: ["confirmPassword"],
   });
 
+export const appFeedbackSchema = z.object({
+  message: z.string().trim().min(10, "Masukan minimal 10 karakter.").max(2000, "Maksimal 2000 karakter."),
+});
+
 /* --------------------------------- Admin ---------------------------------- */
 
 const accountNameField = z.string().trim().min(2, "Nama minimal 2 karakter.").max(120, "Nama maksimal 120 karakter.");

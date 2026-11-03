@@ -52,7 +52,7 @@ export function TopBar({ user, unread, logoUrl }: { user: SessionUser; unread: n
             // eslint-disable-next-line @next/next/no-img-element -- logo diunggah tutor, dimensi tidak diketahui saat build.
             <img src={logoUrl} alt="Lenbee" className="size-7 rounded-lg object-contain" />
           ) : (
-            <span className="flex size-7 items-center justify-center rounded-lg bg-primary text-sm font-black text-primary-foreground">
+            <span className="flex size-7 items-center justify-center rounded-lg bg-primary-gradient text-sm font-black text-primary-foreground">
               L
             </span>
           )}

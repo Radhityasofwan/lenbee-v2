@@ -571,6 +571,21 @@ export const pushSubscriptions = mysqlTable(
   ],
 );
 
+/** Saran/masukan pengembangan aplikasi dari tutor & orang tua — ditinjau super admin. */
+export const appFeedback = mysqlTable(
+  "app_feedback",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    userId: int("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    message: text("message").notNull(),
+    status: mysqlEnum("status", ["new", "reviewed"]).notNull().default("new"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [index("app_feedback_status_idx").on(t.status, t.createdAt), index("app_feedback_user_idx").on(t.userId)],
+);
+
 /* ------------------------------------------------------------------ */
 /* AI log & settings                                                   */
 /* ------------------------------------------------------------------ */
@@ -721,6 +736,7 @@ export type DocumentRow = typeof documents.$inferSelect;
 export type ParentUpdate = typeof parentUpdates.$inferSelect;
 export type ReportCheckItem = typeof reportCheckItems.$inferSelect;
 export type PushSubscriptionRow = typeof pushSubscriptions.$inferSelect;
+export type AppFeedback = typeof appFeedback.$inferSelect;
 export type AiApiKey = typeof aiApiKeys.$inferSelect;
 export type AiModel = typeof aiModels.$inferSelect;
 export type AiProviderId = AiApiKey["provider"];

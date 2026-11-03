@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { ChevronRight, Sparkles } from "lucide-react";
 import { FcDownload, FcOnlineSupport } from "react-icons/fc";
 import { updateFaviconAction, updateLogoAction, updatePwaIconAction } from "@/app/actions/branding";
-import { AvatarForm, BrandingAssetForm, PasswordForm, ProfileForm } from "./settings-forms";
+import { AvatarForm, BrandingAssetForm, FeedbackForm, PasswordForm, ProfileForm } from "./settings-forms";
 import { PushNotificationToggle } from "./push-notification-toggle";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -217,6 +217,16 @@ export default async function SettingsPage() {
           </CardContent>
         </Card>
       ) : null}
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Survei aplikasi</CardTitle>
+          <CardDescription>Punya saran pengembangan Lenbee? Kirim masukan Anda di sini.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <FeedbackForm />
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

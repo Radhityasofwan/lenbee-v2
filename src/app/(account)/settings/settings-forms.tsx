@@ -1,9 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useActionState, useState } from "react";
+import { useActionState, useRef, useState } from "react";
 import { removeAvatarAction, updateAvatarAction } from "@/app/actions/account";
 import { removeBrandingAssetAction } from "@/app/actions/branding";
+import { submitFeedbackAction } from "@/app/actions/feedback";
 import { changePasswordAction, updateProfileAction } from "@/app/actions/students";
 import { StudentAvatar } from "@/components/student-avatar";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ import { Field, FieldGroup } from "@/components/ui/field";
 import { FormAlert } from "@/components/ui/form-alert";
 import { Input } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { Textarea } from "@/components/ui/textarea";
 import { idleState, type ActionState } from "@/lib/form";
 import { useActionToast } from "@/lib/hooks/use-action-toast";
 
@@ -175,6 +177,39 @@ export function BrandingAssetForm({
         ) : null}
       </form>
     </div>
+  );
+}
+
+export function FeedbackForm() {
+  const [state, action] = useActionState(submitFeedbackAction, idleState);
+  const errors = state.fieldErrors ?? {};
+  const formRef = useRef<HTMLFormElement>(null);
+
+  useActionToast(state, () => formRef.current?.reset());
+
+  return (
+    <form ref={formRef} action={action} className="flex flex-col gap-4">
+      {state.message && !state.ok ? <FormAlert tone="error">{state.message}</FormAlert> : null}
+
+      <Field
+        label="Saran & masukan"
+        htmlFor="feedback-message"
+        hint="Dibaca langsung oleh tim pengembang Lenbee."
+        error={errors.message}
+        required
+      >
+        <Textarea
+          id="feedback-message"
+          name="message"
+          placeholder="Fitur apa yang ingin ditambahkan atau diperbaiki?"
+          minLength={10}
+          maxLength={2000}
+          required
+        />
+      </Field>
+
+      <SubmitButton pendingLabel="Mengirim…">Kirim masukan</SubmitButton>
+    </form>
   );
 }
 

@@ -3,17 +3,27 @@
 import { revalidatePath, updateTag } from "next/cache";
 import { z } from "zod";
 import { getSuperAdminOrThrow } from "@/lib/auth";
+import { isValidHex } from "@/lib/domain/theme";
 import { errorMessage, fail, okay, parseForm, type ActionState } from "@/lib/form";
-import { setThemeColor } from "@/lib/services/settings";
+import { setThemeConfig } from "@/lib/services/settings";
 
-const themeColorSchema = z.object({
-  color: z
+const hexOrEmpty = (label: string) =>
+  z
     .string()
     .trim()
-    .transform((v) => (v === "" ? undefined : v))
-    .refine((v) => v === undefined || /^#[0-9a-fA-F]{6}$/.test(v), "Format warna harus hex, mis. #7c5cd6.")
-    .optional(),
-});
+    .refine((v) => v === "" || isValidHex(v), `${label} harus hex 6 digit, mis. #7c5cd6.`);
+
+const themeConfigSchema = z
+  .object({
+    primary: hexOrEmpty("Warna primary"),
+    gradient: z.string().optional(),
+    secondary: hexOrEmpty("Warna kedua"),
+  })
+  .transform((data) => ({
+    primary: data.primary,
+    gradient: data.gradient === "on",
+    secondary: data.secondary === "" ? null : data.secondary,
+  }));
 
 function revalidateTheme() {
   updateTag("theme");
@@ -21,16 +31,24 @@ function revalidateTheme() {
 }
 
 export async function updateThemeColorAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  const parsed = parseForm(themeColorSchema, formData);
+  const parsed = parseForm(themeConfigSchema, formData);
   if (!parsed.success) return parsed.state;
 
   try {
     await getSuperAdminOrThrow();
-    await setThemeColor(parsed.data.color ?? null);
+    if (parsed.data.primary === "") {
+      await setThemeConfig(null);
+    } else {
+      await setThemeConfig({
+        primary: parsed.data.primary,
+        gradient: parsed.data.gradient,
+        secondary: parsed.data.secondary,
+      });
+    }
   } catch (error) {
-    return fail(errorMessage(error, "Gagal menyimpan warna tema."));
+    return fail(errorMessage(error, "Gagal menyimpan tema."));
   }
 
   revalidateTheme();
-  return okay(parsed.data.color ? "Warna tema diperbarui." : "Warna tema dikembalikan ke bawaan.");
+  return okay(parsed.data.primary ? "Tema diperbarui." : "Tema dikembalikan ke bawaan.");
 }

@@ -4,6 +4,7 @@ import {
   CalendarDays,
   ClipboardList,
   House,
+  MessageSquare,
   Palette,
   Receipt,
   Settings2,
@@ -39,6 +40,7 @@ const PARENT_NAV: NavItem[] = [
 const ADMIN_NAV: NavItem[] = [
   { href: "/admin/tutors", label: "Tutor", icon: Users },
   { href: "/admin/parents", label: "Orang Tua", icon: UserRound },
+  { href: "/admin/feedback", label: "Survei", icon: MessageSquare },
   { href: "/admin/theme", label: "Tema", icon: Palette },
 ];
 

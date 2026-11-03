@@ -1,6 +1,22 @@
-/** Konversi & turunan warna tema — dipakai untuk warna primary bebas pilih dari super admin. */
+/** Konversi & turunan warna tema — dipakai untuk tema aplikasi yang bebas dipilih super admin. */
 
-export type ThemeTokens = { primary: string; primaryForeground: string; ring: string };
+export type ThemeConfig = {
+  primary: string;
+  /** Pakai gradasi 2 warna untuk permukaan brand utama (logo, tombol utama, dst). */
+  gradient: boolean;
+  /** Warna kedua gradasi. `null` = diturunkan otomatis dari `primary`. */
+  secondary: string | null;
+};
+
+export type ThemeTokens = {
+  primary: string;
+  primaryForeground: string;
+  ring: string;
+  accent: string;
+  accentForeground: string;
+  gradientFrom: string;
+  gradientTo: string;
+};
 export type ThemeVariants = { light: ThemeTokens; dark: ThemeTokens };
 
 const HEX_PATTERN = /^#([0-9a-fA-F]{6})$/;
@@ -58,6 +74,28 @@ function hslToRgb(h: number, s: number, l: number): [number, number, number] {
   return [hue2rgb(p, q, hn + 1 / 3) * 255, hue2rgb(p, q, hn) * 255, hue2rgb(p, q, hn - 1 / 3) * 255];
 }
 
+/** Ganti lightness di ruang HSL, pertahankan hue & saturation — dipakai untuk turunan tint/wash. */
+function withLightness(hex: string, l: number): string {
+  const [r, g, b] = hexToRgb(hex);
+  const [h, s] = rgbToHsl(r, g, b);
+  const [nr, ng, nb] = hslToRgb(h, s, Math.max(0, Math.min(1, l)));
+  return rgbToHex(nr, ng, nb);
+}
+
+/** Putar hue di ruang HSL — dipakai untuk menyarankan warna kedua gradasi dari satu warna primary. */
+export function rotateHue(hex: string, degrees: number): string {
+  const [r, g, b] = hexToRgb(hex);
+  const [h, s, l] = rgbToHsl(r, g, b);
+  const nh = ((h + degrees) % 360 + 360) % 360;
+  const [nr, ng, nb] = hslToRgb(nh, s, l);
+  return rgbToHex(nr, ng, nb);
+}
+
+/** Saran warna kedua gradasi bila admin belum memilih sendiri. */
+export function suggestGradientPartner(hex: string): string {
+  return rotateHue(hex, 35);
+}
+
 /** Naikkan lightness di ruang HSL — dipakai untuk turunan varian dark mode. */
 export function deriveDarkVariant(hex: string, lightenBy = 0.1): string {
   const [r, g, b] = hexToRgb(hex);
@@ -77,13 +115,38 @@ export function contrastTextColor(hex: string): "#000000" | "#ffffff" {
   return luminance > 0.5 ? "#000000" : "#ffffff";
 }
 
-/** Turunkan token light/dark dari satu warna primary yang dipilih admin. `ring` disamakan dengan `primary`, mengikuti relasi token bawaan di globals.css. */
-export function deriveThemeTokens(hex: string): ThemeVariants {
-  const primary = hex.trim();
+/**
+ * Turunkan token light/dark lengkap dari satu konfigurasi tema.
+ * `ring` & `gradientFrom` disamakan dengan `primary`. `accent` diturunkan dari hue primary (wash
+ * terang di mode terang, wash gelap di mode gelap) supaya chip/badge aksen tetap senada — bukan
+ * lagi warna ungu tetap yang lepas dari warna brand yang dipilih. Warna semantik (destructive,
+ * success, warning, info) sengaja tidak diturunkan dari primary agar maknanya tetap konsisten.
+ */
+export function deriveThemeTokens(config: ThemeConfig): ThemeVariants {
+  const primary = config.primary.trim();
   const darkPrimary = deriveDarkVariant(primary);
 
+  const gradientToLight = config.gradient ? (config.secondary?.trim() || suggestGradientPartner(primary)) : primary;
+  const gradientToDark = config.gradient ? deriveDarkVariant(gradientToLight) : darkPrimary;
+
   return {
-    light: { primary, primaryForeground: contrastTextColor(primary), ring: primary },
-    dark: { primary: darkPrimary, primaryForeground: contrastTextColor(darkPrimary), ring: darkPrimary },
+    light: {
+      primary,
+      primaryForeground: contrastTextColor(primary),
+      ring: primary,
+      accent: withLightness(primary, 0.93),
+      accentForeground: withLightness(primary, 0.32),
+      gradientFrom: primary,
+      gradientTo: gradientToLight,
+    },
+    dark: {
+      primary: darkPrimary,
+      primaryForeground: contrastTextColor(darkPrimary),
+      ring: darkPrimary,
+      accent: withLightness(darkPrimary, 0.32),
+      accentForeground: withLightness(darkPrimary, 0.88),
+      gradientFrom: darkPrimary,
+      gradientTo: gradientToDark,
+    },
   };
 }

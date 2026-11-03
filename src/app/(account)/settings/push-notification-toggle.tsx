@@ -1,13 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Bell, Send } from "lucide-react";
+import { Bell, CheckCircle2, Loader2, Send, TriangleAlert } from "lucide-react";
 import { FcCellPhone } from "react-icons/fc";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 
 type Status = "checking" | "unsupported" | "ios-needs-install" | "on" | "off";
+
+type TestStatus = "idle" | "sending" | "waiting" | "confirmed" | "unconfirmed" | "failed";
+
+const TEST_TIMEOUT_MS = 8000;
 
 function isIos(): boolean {
   return /iphone|ipad|ipod/i.test(navigator.userAgent);
@@ -33,6 +37,22 @@ function urlBase64ToUint8Array(base64Url: string): Uint8Array<ArrayBuffer> {
 export function PushNotificationToggle({ vapidPublicKey }: { vapidPublicKey: string }) {
   const [status, setStatus] = useState<Status>("checking");
   const [busy, setBusy] = useState(false);
+  const [testStatus, setTestStatus] = useState<TestStatus>("idle");
+  const activeTestId = useRef<string | null>(null);
+
+  // Service worker membalas lewat postMessage begitu showNotification() benar-benar
+  // selesai diproses OS — ini yang membuat status tes "sinkron" dengan kondisi nyata di layar,
+  // bukan cuma tebakan dari respons API kirim push.
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) return;
+    const onMessage = (event: MessageEvent) => {
+      if (event.data?.type === "push-test-shown" && event.data.testId === activeTestId.current) {
+        setTestStatus("confirmed");
+      }
+    };
+    navigator.serviceWorker.addEventListener("message", onMessage);
+    return () => navigator.serviceWorker.removeEventListener("message", onMessage);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -120,11 +140,38 @@ export function PushNotificationToggle({ vapidPublicKey }: { vapidPublicKey: str
 
   async function sendTest() {
     setBusy(true);
+    setTestStatus("sending");
     try {
-      const response = await fetch("/api/push/test", { method: "POST" });
-      if (!response.ok) throw new Error("Gagal.");
-      toast.success("Notifikasi uji coba dikirim. Cek notification tray HP Anda.");
+      const registration = await navigator.serviceWorker.ready;
+      const subscription = await registration.pushManager.getSubscription();
+      if (!subscription) {
+        setTestStatus("failed");
+        toast.error("Langganan push tidak ditemukan di perangkat ini. Matikan lalu aktifkan lagi.");
+        return;
+      }
+
+      const testId = crypto.randomUUID();
+      activeTestId.current = testId;
+
+      const response = await fetch("/api/push/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ endpoint: subscription.endpoint, testId }),
+      });
+      const json = await response.json().catch(() => ({}) as { error?: string });
+      if (!response.ok) {
+        setTestStatus("failed");
+        toast.error(json.error ?? "Gagal mengirim notifikasi uji coba.");
+        return;
+      }
+
+      // Server sudah konfirmasi push terkirim ke layanan push — sekarang tunggu service
+      // worker melaporkan balik bahwa notifikasi itu benar-benar tampil di layar perangkat ini.
+      setTestStatus("waiting");
+      await new Promise((resolve) => setTimeout(resolve, TEST_TIMEOUT_MS));
+      setTestStatus((current) => (current === "waiting" ? "unconfirmed" : current));
     } catch {
+      setTestStatus("failed");
       toast.error("Gagal mengirim notifikasi uji coba.");
     } finally {
       setBusy(false);
@@ -171,10 +218,30 @@ export function PushNotificationToggle({ vapidPublicKey }: { vapidPublicKey: str
         />
       </div>
       {status === "on" ? (
-        <Button type="button" variant="outline" size="sm" disabled={busy} onClick={() => void sendTest()} className="self-start">
-          <Send />
-          Kirim notifikasi uji coba
-        </Button>
+        <div className="flex flex-col items-start gap-2">
+          <Button type="button" variant="outline" size="sm" disabled={busy} onClick={() => void sendTest()} className="self-start">
+            {testStatus === "sending" || testStatus === "waiting" ? <Loader2 className="animate-spin" /> : <Send />}
+            Kirim notifikasi uji coba
+          </Button>
+          {testStatus === "sending" ? (
+            <p className="text-xs text-muted-foreground">Mengirim ke layanan push…</p>
+          ) : null}
+          {testStatus === "waiting" ? (
+            <p className="text-xs text-muted-foreground">Menunggu konfirmasi perangkat ini menampilkannya…</p>
+          ) : null}
+          {testStatus === "confirmed" ? (
+            <p className="flex items-center gap-1.5 text-xs font-medium text-success">
+              <CheckCircle2 className="size-3.5" />
+              Terkonfirmasi tampil di layar perangkat ini.
+            </p>
+          ) : null}
+          {testStatus === "unconfirmed" ? (
+            <p className="flex items-start gap-1.5 text-xs font-medium text-warning">
+              <TriangleAlert className="mt-0.5 size-3.5 shrink-0" />
+              Terkirim, tapi tidak ada konfirmasi tampil. Cek izin notifikasi di pengaturan sistem atau mode Jangan Ganggu.
+            </p>
+          ) : null}
+        </div>
       ) : null}
     </div>
   );

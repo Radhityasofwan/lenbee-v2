@@ -39,6 +39,9 @@
   --border: oklch(0.9 0.01 285);
   --input: oklch(0.9 0.01 285);
   --ring: oklch(0.62 0.17 62);
+
+  /** Bawaan: gradasi datar (sama di kedua ujung) — admin bisa timpa jadi gradasi 2 warna lewat halaman Tema. */
+  --primary-gradient: linear-gradient(135deg, var(--primary), var(--primary));
 }
 
 .dark {
@@ -75,6 +78,8 @@
   --border: oklch(0.32 0.02 285);
   --input: oklch(0.34 0.02 285);
   --ring: oklch(0.72 0.16 65);
+
+  --primary-gradient: linear-gradient(135deg, var(--primary), var(--primary));
 }
 
 @theme inline {
@@ -146,6 +151,11 @@
     outline: 2px solid var(--ring);
     outline-offset: 2px;
   }
+}
+
+/** Permukaan brand utama (logo, tombol utama) — gradasi 2 warna bila diatur di halaman Tema, flat kalau tidak. */
+@utility bg-primary-gradient {
+  background-image: var(--primary-gradient);
 }
 
 @utility scrollbar-none {

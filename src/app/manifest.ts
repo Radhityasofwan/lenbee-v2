@@ -1,12 +1,14 @@
 import type { MetadataRoute } from "next";
-import { brandingUrl, getBrandingAsset } from "@/lib/services/settings";
+import { deriveThemeTokens } from "@/lib/domain/theme";
+import { brandingUrl, getBrandingAsset, getThemeConfig } from "@/lib/services/settings";
 
-// Query DB tiap request supaya ikon PWA yang baru diunggah langsung terpakai.
+// Query DB tiap request supaya ikon PWA & warna tema yang baru diubah langsung terpakai.
 export const revalidate = 0;
 
 export default async function manifest(): Promise<MetadataRoute.Manifest> {
-  const pwaIcon = await getBrandingAsset("pwaIcon");
+  const [pwaIcon, themeConfig] = await Promise.all([getBrandingAsset("pwaIcon"), getThemeConfig()]);
   const pwaIconUrl = brandingUrl("pwaIcon", pwaIcon);
+  const themeColor = themeConfig ? deriveThemeTokens(themeConfig).light.primary : "#c9761f";
 
   return {
     name: "Lenbee — Manajemen Les Privat",
@@ -18,7 +20,7 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     display: "standalone",
     orientation: "portrait",
     background_color: "#faf8f4",
-    theme_color: "#c9761f",
+    theme_color: themeColor,
     lang: "id",
     categories: ["education", "productivity"],
     icons: pwaIconUrl && pwaIcon

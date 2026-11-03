@@ -17,7 +17,7 @@ export default async function AuthLayout({ children }: { children: ReactNode }) 
             // eslint-disable-next-line @next/next/no-img-element -- logo diunggah tutor, dimensi tidak diketahui saat build.
             <img src={logoUrl} alt="Lenbee" className="size-14 rounded-2xl object-contain shadow-md shadow-primary/20" />
           ) : (
-            <span className="flex size-14 items-center justify-center rounded-2xl bg-primary text-2xl font-black text-primary-foreground shadow-md shadow-primary/20">
+            <span className="flex size-14 items-center justify-center rounded-2xl bg-primary-gradient text-2xl font-black text-primary-foreground shadow-md shadow-primary/20">
               L
             </span>
           )}
